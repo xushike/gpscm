@@ -25,11 +25,6 @@ export default {
       this.setMapEvent(); //设置地图事件
       this.addMapControl(); //向地图添加控件
       this.initLine();
-
-      // setTimeout(() => {
-      //   this.dynamicLine();
-      // }, 1000);
-
       this.createWebSocket();
     },
 

@@ -212,6 +212,9 @@ var BMapLib = window.BMapLib = BMapLib || {};
             if (!this._opts.icon instanceof BMap.Icon) {
                 this._opts.icon = defaultIcon;
             }
+            //基准点和比较点
+            this._datumMark = null;
+            this._compareMark = null;
         }
     /**
     * 根据用户输入的opts，修改默认参数_opts
@@ -330,7 +333,9 @@ var BMapLib = window.BMapLib = BMapLib || {};
             }
             //移除之前的overlay
             this._overlay && this._map.removeOverlay(this._overlay);
-            var marker = new BMap.Marker(this._path[0]);
+            var marker = new BMap.Marker(this._path[0], {
+                enableMassClear: false,
+            });
             this._opts.icon && marker.setIcon(this._opts.icon);
             this._map.addOverlay(marker);
             marker.setAnimation(BMAP_ANIMATION_DROP);
@@ -393,12 +398,31 @@ var BMapLib = window.BMapLib = BMapLib || {};
                 target_pos = this._projection.lngLatToPoint(targetPos),
                 //总的步长
                 count = Math.round(me._getDistance(init_pos, target_pos) / step);
+            //清空覆盖物
+            // me._map.clearOverlays();
+            //自定义距离标签
+            console.log("_datumMark && _compareMark:",this._datumMark,this._compareMark)
+            if (me._datumMark && me._compareMark) {
+                var label = new BMap.Label(`移动 ${Math.round(me._getDistance(this._projection.lngLatToPoint(me._datumMark), this._projection.lngLatToPoint(me._compareMark)) * 1000) / 1000} 米`, {
+                    position: targetPos,    // 指定文本标注所在的地理位置
+                    offset: new BMap.Size(30, -30)    //设置文本偏移量
+                });  // 创建文本标注对象
+                label.setStyle({
+                    color: "red",
+                    fontSize: "12px",
+                    height: "20px",
+                    lineHeight: "20px",
+                    fontFamily: "微软雅黑"
+                });
+                me._map.addOverlay(label);
+            }
             //自定义画线
             me._map.addOverlay(
                 new BMap.Polyline(pointsArr, {
                     strokeColor: "#111",
                     strokeWeight: 5,
-                    strokeOpacity: 0.5
+                    strokeOpacity: 0.5,
+                    enableMassClear: false,
                 })
             );
             //如果小于1直接移动到下一点

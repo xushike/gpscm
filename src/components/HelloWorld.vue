@@ -1,15 +1,10 @@
 <template>
 <div>
 <div style="width:100%;height:700px;border:#ccc solid 1px;" id="allmap"></div>
-<button type="button" id="mock-button" style="width:100px;height:30px">使用模拟数据</button>
-<div>
+<button type="button" id="mock-button" style="width:100px;height:30px" v-on:click="useMockData">使用模拟数据</button>
 <button type="button" id="real-button" style="width:100px;height:30px">使用真实数据</button>
-<!-- <button type="button" id="connect-button" style="width:100px;height:30px">连接</button> -->
-<button type="button" id="subscribe-button" style="width:100px;height:30px">开始</button>
-<!-- <button type="button" id="unsubscribe-button" style="width:100px;height:30px">停止</button> -->
-<!-- <button type="button" id="disconnect-button" style="width:100px;height:30px">断开</button> -->
-<!-- <button type="button" id="lushu-start-button" style="width:100px;height:30px">lushu-start</button> -->
-</div>
+<button type="button" id="datum-mark-button" style="width:100px;height:30px" v-on:click="datumMarkStateChange">记录基准点</button>
+<span>{{datumMarkState == 1?'基准点已记录':'等待记录基准点'}}</span>
 </div>
 </template>
 
@@ -18,6 +13,7 @@ export default {
   data() {
     return {
       lushu: null,
+      datumMarkState: null //基准点状态,初始值为null，未记录为0，已记录为1,
     };
   },
   mounted() {
@@ -31,9 +27,8 @@ export default {
       this.addMapControl(); //向地图添加控件
 
       this.createLushu(); //创建路书
-      this.createWebSocket(); //创建websocket数据 
+      this.createWebSocket(); //创建websocket数据
     },
-
 
     //创建websocket相关的东西
     createWebSocket() {
@@ -47,8 +42,6 @@ export default {
           mosq = new Mosquitto();
           //button事件
           $("#real-button").click(function() {
-            //
-            console.log("onclick")
             return _this.connect();
           });
           $("#disconnect-button").click(function() {
@@ -66,13 +59,15 @@ export default {
 
           mosq.onconnect = function(rc) {
             console.log("CONNACK " + rc);
+            if (rc == 0) {
+              _this.subscribe();
+            }
           };
           mosq.ondisconnect = function(rc) {
             console.log("Lost connection");
           };
           mosq.onmessage = (topic, payload, qos) => {
             //触发事件
-            // console.log("PUBLISH " + topic + payload);
             self.dynamicLine(payload);
           };
         }
@@ -166,7 +161,9 @@ export default {
         icon: new BMap.Icon(
           "http://lbsyun.baidu.com/jsdemo/img/car.png",
           new BMap.Size(52, 26),
-          { anchor: new BMap.Size(27, 13) }
+          {
+            anchor: new BMap.Size(27, 13)
+          }
         ),
         speed: 400,
         enableRotation: true, //是否设置marker随着道路的走向进行旋转,
@@ -204,6 +201,19 @@ export default {
         //重置状态
         this._fromPause = false;
         this._fromStop = false;
+      };
+
+      //更新基准点
+      BMapLib.LuShu.prototype.updateDatumMark = function(point) {
+        var me = this;
+        me._datumMark = point;
+        me._compareMark = null;
+      };
+
+      //更新比较点
+      BMapLib.LuShu.prototype.updateCompareMark = function(point) {
+        var me = this;
+        me._compareMark = point;
       };
 
       /**
@@ -254,7 +264,7 @@ export default {
 
     //使用模拟数据创建轨迹
     mockLine() {
-      var point = { longitude: 104.087744, latitude: 30.408908 };
+      var poi = { longitude: 104.087744, latitude: 30.408908 };
       //如果是第一次，则设置为中心点
       // if (points.length < 2) {
       //   map.centerAndZoom(new BMap.Point(point.longitude, point.latitude), 18);
@@ -262,14 +272,22 @@ export default {
 
       // var lng = parseFloat(point.longitude) + (Math.random()/100);
       // var lat = parseFloat(point.latitude) + (Math.random()/100);
-      var lng = point.longitude + Math.random() / 1000; //使用随机数据
-      var lat = point.latitude + Math.random() / 1000;
+      var lng = poi.longitude + Math.random() / 1000; //使用随机数据
+      var lat = poi.latitude + Math.random() / 1000;
       // var lng = point.longitude;
       // var lat = point.latitude;
       var id = Math.floor(Math.random() * 1000 + 1);
       var point = { lng: lng, lat: lat, status: 1, id: id };
       var newLinePoints = [];
       var len;
+
+      //是否记录基准点
+      if (this.datumMarkState == 0) {
+        this.lushu.updateDatumMark(new BMap.Point(lng, lat));
+        this.datumMarkState = 1;
+      } else if (this.datumMarkState == 1) {
+        this.lushu.updateCompareMark(new BMap.Point(lng, lat));
+      }
 
       points.push(point);
       map.setViewport(points);
@@ -280,7 +298,7 @@ export default {
       this.lushu.start(); //路书开始运动
     },
 
-    useMockData(){
+    useMockData() {
       setInterval(() => {
         //调用模拟数据
         this.mockLine();
@@ -289,8 +307,9 @@ export default {
 
     //使用真实数据创建轨迹
     dynamicLine(poi) {
-      var point = JSON.parse(poi);
-      console.log("poi:",poi)
+      var poi = JSON.parse(poi);
+
+      console.log("point:", poi);
       //如果是第一次，则设置为中心点
       // if (points.length < 2) {
       //   map.centerAndZoom(new BMap.Point(point.longitude, point.latitude), 18);
@@ -300,12 +319,28 @@ export default {
       // var lat = parseFloat(point.latitude) + (Math.random()/100);
       // var lng = point.longitude + Math.random() / 1000; //使用随机数据
       // var lat = point.latitude + Math.random() / 1000;
-      var lng = point.longitude;
-      var lat = point.latitude;
+      var lng = poi.longitude;
+      var lat = poi.latitude;
       var id = Math.floor(Math.random() * 1000 + 1);
       var point = { lng: lng, lat: lat, status: 1, id: id };
       var newLinePoints = [];
       var len;
+
+      //是否记录基准点
+      console.log("best:", poi.best, typeof poi.best);
+      if (poi.best) {
+        console.log("enter outer");
+
+        if (this.datumMarkState == 0) {
+          //
+          console.log("enter");
+          this.lushu.updateDatumMark(new BMap.Point(lng, lat));
+          this.datumMarkState = 1;
+        } else if (this.datumMarkState == 1) {
+          console.log("enter 第二个");
+          this.lushu.updateCompareMark(new BMap.Point(lng, lat));
+        }
+      }
 
       points.push(point);
       map.setViewport(points);
@@ -313,6 +348,11 @@ export default {
       arrPois.push(new BMap.Point(lng, lat)); //设备使用的实时数据
       newLinePoints = points.slice(-2); //最后两个点用来画线。
       this.lushu.start(); //路书开始运动
+    },
+
+    //准备记录基准点
+    datumMarkStateChange() {
+      this.datumMarkState = 0;
     }
   }
 };
