@@ -1,13 +1,15 @@
 <template>
 <div>
 <div style="width:100%;height:700px;border:#ccc solid 1px;" id="allmap"></div>
-<button type="button" id="connect-button" style="width:100px;height:30px">connect</button>
-<button type="button" id="subscribe-button" style="width:100px;height:30px">subscribe</button>
-<button type="button" id="unsubscribe-button" style="width:100px;height:30px">unsubscribe</button>
-<button type="button" id="disconnect-button" style="width:100px;height:30px">disconnect</button>
+<button type="button" id="mock-button" style="width:100px;height:30px">使用模拟数据</button>
+<div>
+<button type="button" id="real-button" style="width:100px;height:30px">使用真实数据</button>
+<!-- <button type="button" id="connect-button" style="width:100px;height:30px">连接</button> -->
+<button type="button" id="subscribe-button" style="width:100px;height:30px">开始</button>
+<!-- <button type="button" id="unsubscribe-button" style="width:100px;height:30px">停止</button> -->
+<!-- <button type="button" id="disconnect-button" style="width:100px;height:30px">断开</button> -->
 <!-- <button type="button" id="lushu-start-button" style="width:100px;height:30px">lushu-start</button> -->
-
-
+</div>
 </div>
 </template>
 
@@ -15,26 +17,23 @@
 export default {
   data() {
     return {
-      lushu: null
+      lushu: null,
     };
   },
   mounted() {
     this.initMap();
   },
+
   methods: {
     initMap() {
       this.createMap(); //创建地图
       this.setMapEvent(); //设置地图事件
       this.addMapControl(); //向地图添加控件
+
       this.createLushu(); //创建路书
-
-      // this.createWebSocket(); //使用真实数据
-
-      setInterval(() => {
-        //调用模拟数据
-        this.dynamicLine(null);
-      }, 1000);
+      this.createWebSocket(); //创建websocket数据 
     },
+
 
     //创建websocket相关的东西
     createWebSocket() {
@@ -47,8 +46,9 @@ export default {
           var _this = this;
           mosq = new Mosquitto();
           //button事件
-          $("#connect-button").click(function() {
-            console.log("enter click method");
+          $("#real-button").click(function() {
+            //
+            console.log("onclick")
             return _this.connect();
           });
           $("#disconnect-button").click(function() {
@@ -74,7 +74,6 @@ export default {
             //触发事件
             // console.log("PUBLISH " + topic + payload);
             self.dynamicLine(payload);
-            // self.lushu.start();
           };
         }
         Page.prototype.connect = function() {
@@ -125,7 +124,7 @@ export default {
       window.bPoints = bPoints;
 
       map.centerAndZoom(new BMap.Point(104.087744, 30.408908), 19); //设定地图的中心点和坐标
-      map.setMaxZoom(17); //设置地图最大级别
+      map.setMaxZoom(19); //设置地图最大级别
       map.addOverlay(marker); //增加点
     },
 
@@ -157,10 +156,7 @@ export default {
     //创建路书
     createLushu() {
       // var lushu;
-      var arrPois = [
-        new BMap.Point(104.08807303102084, 30.41191202970669),
-        new BMap.Point(104.0954077657928, 30.415821021062357)
-      ];
+      var arrPois = [];
       window.arrPois = arrPois;
       map.setViewport(arrPois);
 
@@ -190,23 +186,20 @@ export default {
         var len = me._path.length;
         //不是第一次点击开始,并且小车还没到达终点
         console.log(
-          `me.i:${me.i}   me.len:${len}   me._fromPause:${me._fromPause}`
+          `me.i:${me.i}   me.len:${len}   me._fromPause:${
+            me._fromPause
+          } me._moving:${me._moving}`
         );
-        if (me._moving) {
-          return;
-        }
-        if (me.i && me.i < len - 1) {
+        if (me.i < len - 1) {
           me._moving = true;
           me._moveNext(me.i);
         } else {
-          //第一次点击开始，或者点了stop之后点开始
+          //初始化marker
           me._addMarker();
-          //等待marker动画完毕再加载infowindow
-          me._moving = true;
-          me._timeoutFlag = setTimeout(function() {
-            me._addInfoWin();
-            me._moveNext(me.i);
-          }, 400);
+          //等待marker动画完毕再加载infowindow(未实现)
+          me._addInfoWin();
+          me._moveNext(me.i);
+          // }, 400);
         }
         //重置状态
         this._fromPause = false;
@@ -228,67 +221,6 @@ export default {
           me._moving = false;
         }
       };
-
-      // /**
-      //  * 移动设备
-      //  * @param {Number} poi 当前的步长.
-      //  * @param {Point} initPos 经纬度坐标初始点.
-      //  * @param {Point} targetPos 经纬度坐标目标点.
-      //  * @param {Function} effect 缓动效果.
-      //  * @return 无返回值.
-      //  */
-      // BMapLib.LuShu.prototype._move = function(initPos, targetPos, effect) {
-      //   // var pointsArr = [initPos, targetPos]; //点数组
-      //   var me = this,
-      //     //当前的帧数
-      //     currentCount = 0,
-      //     //步长，米/秒
-      //     timer = 10,
-      //     step = this._opts.speed / (1000 / timer),
-      //     //初始坐标
-      //     initPos = this._projection.lngLatToPoint(initPos),
-      //     //获取结束点的(x,y)坐标
-      //     targetPos = this._projection.lngLatToPoint(targetPos),
-      //     //总的步长
-      //     count = Math.round(me._getDistance(initPos, targetPos) / step);
-      //   // 自定义画线
-      //   // this._map.addOverlay(
-      //   //   new BMap.Polyline(pointsArr, {
-      //   //     strokeColor: "#111",
-      //   //     strokeWeight: 5,
-      //   //     strokeOpacity: 0.5
-      //   //   })
-      //   // );
-
-      //   //如果小于1直接移动到下一点
-      //   if (count < 1) {
-      //     me._moveNext(++me.i);
-      //     return;
-      //   }
-      //   //两点之间匀速移动
-      //   me._intervalFlag = setInterval(function() {
-      //     //两点之间当前帧数大于总帧数的时候，则说明已经完成移动
-      //     if (currentCount >= count) {
-      //       clearInterval(me._intervalFlag);
-      //       //移动的点已经超过总的长度
-      //       if (me.i > me._path.length) {
-      //         return;
-      //       }
-      //       //运行下一个点
-      //       me._moveNext(++me.i);
-      //     } else {
-      //       //正在移动
-      //       currentCount++;
-      //       var x = effect(initPos.x, targetPos.x, currentCount, count),
-      //         y = effect(initPos.y, targetPos.y, currentCount, count),
-      //         pos = me._projection.pointToLngLat(new BMap.Pixel(x, y));
-      //       //设置marker
-      //       me._marker.setPosition(pos);
-      //       //设置自定义overlay的位置
-      //       me._setInfoWin(pos);
-      //     }
-      //   }, timer);
-      // };
 
       $("#lushu-start-button").click(() => {
         this.lushu.start();
@@ -320,11 +252,9 @@ export default {
       map.addOverlay(polyline); //增加折线
     },
 
-    //把传入的点加入到轨迹中
-    dynamicLine(poi) {
-      var point = poi
-        ? JSON.parse(poi)
-        : { longitude: 104.087744, latitude: 30.408908 };
+    //使用模拟数据创建轨迹
+    mockLine() {
+      var point = { longitude: 104.087744, latitude: 30.408908 };
       //如果是第一次，则设置为中心点
       // if (points.length < 2) {
       //   map.centerAndZoom(new BMap.Point(point.longitude, point.latitude), 18);
@@ -332,27 +262,57 @@ export default {
 
       // var lng = parseFloat(point.longitude) + (Math.random()/100);
       // var lat = parseFloat(point.latitude) + (Math.random()/100);
-      var lng = point.longitude + Math.random() / 100; //使用随机数据
-      var lat = point.latitude + Math.random() / 100;
+      var lng = point.longitude + Math.random() / 1000; //使用随机数据
+      var lat = point.latitude + Math.random() / 1000;
       // var lng = point.longitude;
       // var lat = point.latitude;
       var id = Math.floor(Math.random() * 1000 + 1);
       var point = { lng: lng, lat: lat, status: 1, id: id };
-      var makerPoints = [];
       var newLinePoints = [];
       var len;
 
-      makerPoints.push(point);
-      //addMarker(makerPoints); //增加对应该的轨迹点
       points.push(point);
       map.setViewport(points);
       bPoints.push(new BMap.Point(lng, lat));
       arrPois.push(new BMap.Point(lng, lat)); //设备使用的实时数据
 
       newLinePoints = points.slice(-2); //最后两个点用来画线。
+      this.lushu.start(); //路书开始运动
+    },
 
-      // this.addLine(newLinePoints); //增加轨迹线
-      this.lushu.start(); //路书开始运动(如果处于移动状态就不用管)
+    useMockData(){
+      setInterval(() => {
+        //调用模拟数据
+        this.mockLine();
+      }, 1000);
+    },
+
+    //使用真实数据创建轨迹
+    dynamicLine(poi) {
+      var point = JSON.parse(poi);
+      console.log("poi:",poi)
+      //如果是第一次，则设置为中心点
+      // if (points.length < 2) {
+      //   map.centerAndZoom(new BMap.Point(point.longitude, point.latitude), 18);
+      // }
+
+      // var lng = parseFloat(point.longitude) + (Math.random()/100);
+      // var lat = parseFloat(point.latitude) + (Math.random()/100);
+      // var lng = point.longitude + Math.random() / 1000; //使用随机数据
+      // var lat = point.latitude + Math.random() / 1000;
+      var lng = point.longitude;
+      var lat = point.latitude;
+      var id = Math.floor(Math.random() * 1000 + 1);
+      var point = { lng: lng, lat: lat, status: 1, id: id };
+      var newLinePoints = [];
+      var len;
+
+      points.push(point);
+      map.setViewport(points);
+      bPoints.push(new BMap.Point(lng, lat));
+      arrPois.push(new BMap.Point(lng, lat)); //设备使用的实时数据
+      newLinePoints = points.slice(-2); //最后两个点用来画线。
+      this.lushu.start(); //路书开始运动
     }
   }
 };
