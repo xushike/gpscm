@@ -42,6 +42,13 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     quiet: true, // necessary for FriendlyErrorsPlugin
     watchOptions: {
       poll: config.dev.poll,
+    },
+    proxy: {
+      '/api': {
+        target: 'http://192.168.7.189:9090',
+        pathRewrite: { '^/api': '' },
+        changeOrigin: true
+      }
     }
   },
   plugins: [
@@ -85,8 +92,8 @@ module.exports = new Promise((resolve, reject) => {
           messages: [`Your application is running here: http://${devWebpackConfig.devServer.host}:${port}`],
         },
         onErrors: config.dev.notifyOnErrors
-        ? utils.createNotifierCallback()
-        : undefined
+          ? utils.createNotifierCallback()
+          : undefined
       }))
 
       resolve(devWebpackConfig)
