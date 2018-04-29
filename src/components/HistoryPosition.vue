@@ -1,6 +1,6 @@
 <template>
 <div>
-<div style="width:100%;height:700px;border:#ccc solid 1px;" id="map"></div>
+<div style="width:100%;height:600px;border:#ccc solid 1px;" id="map"></div>
 <button type="button" id="history-button" style="width:100px;height:30px" v-on:click="queryHistoryData">使用历史数据</button>
 <span>{{datumMarkState == 1?'基准点已记录':'等待记录基准点'}}</span>
 </div>

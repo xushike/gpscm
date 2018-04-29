@@ -1,6 +1,6 @@
 <template>
 <div>
-<div style="width:100%;height:700px;border:#ccc solid 1px;" id="allmap"></div>
+<div style="width:100%;height:600px;border:#ccc solid 1px;" id="allmap"></div>
 <button type="button" id="mock-button" style="width:100px;height:30px" v-on:click="useMockData">使用模拟数据</button>
 <button type="button" id="real-button" style="width:100px;height:30px" @click="connectWebSocket">使用真实数据</button>
 <button type="button" id="datum-mark-button" style="width:100px;height:30px" v-on:click="datumMarkStateChange">记录基准点</button>
@@ -22,9 +22,10 @@ export default {
     this.initMap();
   },
   beforeDestroy() {
+    //清除定时器
     this.timer && clearInterval(this.timer);
-    console.log("this.webSocket.getReadyState():", this.webSocket.mosq.readyState);
-    if (this.webSocket.mosq.readyState == 0 || this.webSocket.mosq.readyState == 1) {
+    //断开websocket连接
+    if (this.webSocket.getReadyState() == 0 || this.webSocket.getReadyState() == 1) {
       this.webSocket.disconnect();
     }
   },
@@ -67,9 +68,6 @@ export default {
           });
 
           mosq.onconnect = function(rc) {
-            console.log("CONNACK " + rc);
-            //打印装填
-            console.log("websocket mosq:", self.webSocket);
             if (rc == 0) {
               _this.subscribe();
             }
@@ -83,14 +81,11 @@ export default {
           };
         }
         Page.prototype.connect = function() {
+          var mypage =this;
           var url = "ws://192.168.6.231:8080/mqtt";
-          //
-          console.log("websocket:",self.webSocket.mosq)
           mosq.connect(url);
         };
         Page.prototype.disconnect = function() {
-          //
-          console.log("enter disconnect method");
           mosq.disconnect();
         };
         Page.prototype.subscribe = function() {
@@ -107,9 +102,9 @@ export default {
           var payload = "";
           mosq.publish(topic, payload, 0);
         };
-        // Page.prototype.getReadyState = function() {
-        //   return mosq.readyState;
-        // };
+        Page.prototype.getReadyState = function() {
+          return mosq.ws.readyState;
+        };
         return Page;
       })();
 
