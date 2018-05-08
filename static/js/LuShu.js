@@ -233,6 +233,25 @@ var BMapLib = window.BMapLib = BMapLib || {};
     }
 
     /**
+     * @description更新基准点
+     */
+
+    LuShu.prototype.updateDatumMark = function (point) {
+        var me = this;
+        me._datumMark = point;
+        me._compareMark = null;
+    };
+
+    /**
+     * @description 更新比较点
+     * 
+     */
+    LuShu.prototype.updateCompareMark = function (point) {
+        var me = this;
+        me._compareMark = point;
+    };
+
+    /**
      * @description 开始运动
      * @param none
      * @return 无返回值.
@@ -243,28 +262,22 @@ var BMapLib = window.BMapLib = BMapLib || {};
     LuShu.prototype.start = function () {
         var me = this,
             len = me._path.length;
+        console.log(
+            `me.i:${me.i}   me.len:${len}   me._fromPause:${
+            me._fromPause
+            } me._moving:${me._moving}`
+        );
         //不是第一次点击开始,并且小车还没到达终点
-        if (me.i && me.i < len - 1) {
-            //没按pause再按start不做处理
-            if (!me._fromPause) {
-                return;
-            } else if (!me._fromStop) {
-                //按了pause按钮,并且再按start，直接移动到下一点
-                //并且此过程中，没有按stop按钮
-                //防止先stop，再pause，然后连续不停的start的异常
-                me._moveNext(++me.i);
-            }
+        if (me.i < len - 1 && me._marker) {
+            me._moving = true;
+            me._moveNext(me.i);
         } else {
-            //第一次点击开始，或者点了stop之后点开始
+            //初始化marker
             me._addMarker();
-            //等待marker动画完毕再加载infowindow
-            me._timeoutFlag = setTimeout(function () {
-                me._addInfoWin();
-                if (me._opts.defaultContent == "") {
-                    me.hideInfoWindow();
-                }
-                me._moveNext(me.i);
-            }, 400);
+            //等待marker动画完毕再加载infowindow(未实现)
+            me._addInfoWin();
+            me._moveNext(me.i);
+            // }, 400);
         }
         //重置状态
         this._fromPause = false;
@@ -401,7 +414,6 @@ var BMapLib = window.BMapLib = BMapLib || {};
             //清空覆盖物
             // me._map.clearOverlays();
             //自定义距离标签
-            console.log("_datumMark && _compareMark:",this._datumMark,this._compareMark)
             if (me._datumMark && me._compareMark) {
                 var label = new BMap.Label(`移动 ${Math.round(me._getDistance(this._projection.lngLatToPoint(me._datumMark), this._projection.lngLatToPoint(me._compareMark)) * 1000) / 1000} 米`, {
                     position: targetPos,    // 指定文本标注所在的地理位置
@@ -521,7 +533,11 @@ var BMapLib = window.BMapLib = BMapLib || {};
         _moveNext: function (index) {
             var me = this;
             if (index < this._path.length - 1) {
+                me._moving = true;
                 me._move(me._path[index], me._path[index + 1], me._tween.linear);
+            } else {
+                me.pause();
+                me._moving = false;
             }
         },
         /**

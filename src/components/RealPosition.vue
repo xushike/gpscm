@@ -19,7 +19,7 @@ export default {
     };
   },
   mounted() {
-    this.initMap();
+    this.init();
   },
   beforeDestroy() {
     //清除定时器
@@ -31,13 +31,13 @@ export default {
   },
 
   methods: {
-    initMap() {
+    init() {
       this.createMap(); //创建地图
       this.setMapEvent(); //设置地图事件
       this.addMapControl(); //向地图添加控件
 
       this.createLushu(); //创建路书
-      this.createWebSocket(); //创建websocket数据
+      this.createWebSocket(); //创建websocket
     },
 
     //创建websocket相关的东西
@@ -50,23 +50,6 @@ export default {
         function Page() {
           var _this = this;
           mosq = new Mosquitto();
-          //button事件
-          // $("#real-button").click(function() {
-          //   return _this.connect();
-          // });
-          $("#disconnect-button").click(function() {
-            return _this.disconnect();
-          });
-          $("#subscribe-button").click(function() {
-            return _this.subscribe();
-          });
-          $("#unsubscribe-button").click(function() {
-            return _this.unsubscribe();
-          });
-          $("#publish-button").click(function() {
-            return _this.publish();
-          });
-
           mosq.onconnect = function(rc) {
             if (rc == 0) {
               _this.subscribe();
@@ -103,7 +86,7 @@ export default {
           mosq.publish(topic, payload, 0);
         };
         Page.prototype.getReadyState = function() {
-          return mosq.ws.readyState;
+          return mosq.ws && mosq.ws.readyState;
         };
         return Page;
       })();
@@ -179,72 +162,6 @@ export default {
         enableRotation: true, //是否设置marker随着道路的走向进行旋转,
         landmarkPois: []
       });
-
-      /**
-       * @description 开始运动
-       * @param none
-       * @return 无返回值.
-       *
-       * @example <b>参考示例：</b><br />
-       * lushu.start();
-       */
-      BMapLib.LuShu.prototype.start = function() {
-        var me = this;
-        var len = me._path.length;
-        //不是第一次点击开始,并且小车还没到达终点
-        console.log(
-          `me.i:${me.i}   me.len:${len}   me._fromPause:${
-            me._fromPause
-          } me._moving:${me._moving}`
-        );
-        if (me.i < len - 1 && me._marker) {
-          me._moving = true;
-          me._moveNext(me.i);
-        } else {
-          //初始化marker
-          me._addMarker();
-          //等待marker动画完毕再加载infowindow(未实现)
-          me._addInfoWin();
-          me._moveNext(me.i);
-          // }, 400);
-        }
-        //重置状态
-        this._fromPause = false;
-        this._fromStop = false;
-      };
-
-      //更新基准点
-      BMapLib.LuShu.prototype.updateDatumMark = function(point) {
-        var me = this;
-        me._datumMark = point;
-        me._compareMark = null;
-      };
-
-      //更新比较点
-      BMapLib.LuShu.prototype.updateCompareMark = function(point) {
-        var me = this;
-        me._compareMark = point;
-      };
-
-      /**
-       * 移动到下一个点
-       * @param {Number} index 当前点的索引.
-       * @return 无返回值.
-       */
-      BMapLib.LuShu.prototype._moveNext = function(index) {
-        var me = this;
-        if (index < this._path.length - 1) {
-          me._moving = true;
-          me._move(me._path[index], me._path[index + 1], me._tween.linear);
-        } else {
-          me.pause();
-          me._moving = false;
-        }
-      };
-
-      $("#lushu-start-button").click(() => {
-        this.lushu.start();
-      });
     },
 
     //添加线
@@ -280,12 +197,8 @@ export default {
       //   map.centerAndZoom(new BMap.Point(point.longitude, point.latitude), 18);
       // }
 
-      // var lng = parseFloat(point.longitude) + (Math.random()/100);
-      // var lat = parseFloat(point.latitude) + (Math.random()/100);
       var lng = poi.longitude + Math.random() / 1000; //使用随机数据
       var lat = poi.latitude + Math.random() / 1000;
-      // var lng = point.longitude;
-      // var lat = point.latitude;
       var id = Math.floor(Math.random() * 1000 + 1);
       var point = { lng: lng, lat: lat, status: 1, id: id };
       var newLinePoints = [];
@@ -313,9 +226,6 @@ export default {
         //调用模拟数据
         this.mockLine();
       }, 1000);
-
-      //
-      console.log("this.timer:", this.timer);
     },
 
     //使用真实数据创建轨迹
@@ -326,11 +236,6 @@ export default {
       // if (points.length < 2) {
       //   map.centerAndZoom(new BMap.Point(point.longitude, point.latitude), 18);
       // }
-
-      // var lng = parseFloat(point.longitude) + (Math.random()/100);
-      // var lat = parseFloat(point.latitude) + (Math.random()/100);
-      // var lng = point.longitude + Math.random() / 1000; //使用随机数据
-      // var lat = point.latitude + Math.random() / 1000;
       var lng = poi.longitude;
       var lat = poi.latitude;
       var id = Math.floor(Math.random() * 1000 + 1);

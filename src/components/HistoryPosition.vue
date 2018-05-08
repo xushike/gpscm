@@ -45,23 +45,6 @@ export default {
         function Page() {
           var _this = this;
           mosq = new Mosquitto();
-          //button事件
-          $("#real-button").click(function() {
-            return _this.connect();
-          });
-          $("#disconnect-button").click(function() {
-            return _this.disconnect();
-          });
-          $("#subscribe-button").click(function() {
-            return _this.subscribe();
-          });
-          $("#unsubscribe-button").click(function() {
-            return _this.unsubscribe();
-          });
-          $("#publish-button").click(function() {
-            return _this.publish();
-          });
-
           mosq.onconnect = function(rc) {
             console.log("CONNACK " + rc);
             if (rc == 0) {
@@ -171,73 +154,6 @@ export default {
         enableRotation: true, //是否设置marker随着道路的走向进行旋转,
         landmarkPois: []
       });
-
-      /**
-       * @description 开始运动
-       * @param none
-       * @return 无返回值.
-       *
-       * @example <b>参考示例：</b><br />
-       * lushu.start();
-       */
-      BMapLib.LuShu.prototype.start = function() {
-        var me = this;
-        var len = me._path.length;
-        //不是第一次点击开始,并且小车还没到达终点
-        console.log(
-          `me.i:${me.i}   me.len:${len}   me._fromPause:${
-            me._fromPause
-          } me._moving:${me._moving}`
-        );
-        if (me.i && me.i < len - 1) {
-          if (me._moving) {
-            return;
-          }
-          me._moveNext(me.i);
-        } else {
-          me._moving = true;
-          //初始化marker
-          me._addMarker();
-          //等待marker动画完毕再加载infowindow(未实现)
-          me._addInfoWin();
-          me._moveNext(me.i);
-          // }, 400);
-        }
-        //重置状态
-        this._fromPause = false;
-        this._fromStop = false;
-      };
-
-      //更新基准点
-      BMapLib.LuShu.prototype.updateDatumMark = function(point) {
-        var me = this;
-        me._datumMark = point;
-        me._compareMark = null;
-      };
-
-      //更新比较点
-      BMapLib.LuShu.prototype.updateCompareMark = function(point) {
-        var me = this;
-        me._compareMark = point;
-      };
-
-      /**
-       * 移动到下一个点
-       * @param {Number} index 当前点的索引.
-       * @return 无返回值.
-       */
-      BMapLib.LuShu.prototype._moveNext = function(index) {
-        console.log("enter");
-        var me = this;
-        if (index < this._path.length - 1) {
-          me._moving = true;
-          me._move(me._path[index], me._path[index + 1], me._tween.linear);
-        } else {
-          me.pause();
-          me._moving = false;
-        }
-      };
-
       $("#lushu-start-button").click(() => {
         this.lushu.start();
       });
@@ -275,13 +191,8 @@ export default {
       // if (points.length < 2) {
       //   map.centerAndZoom(new BMap.Point(point.longitude, point.latitude), 18);
       // }
-
-      // var lng = parseFloat(point.longitude) + (Math.random()/100);
-      // var lat = parseFloat(point.latitude) + (Math.random()/100);
       var lng = poi.longitude + Math.random() / 1000; //使用随机数据
       var lat = poi.latitude + Math.random() / 1000;
-      // var lng = point.longitude;
-      // var lat = point.latitude;
       var id = Math.floor(Math.random() * 1000 + 1);
       var point = { lng: lng, lat: lat, status: 1, id: id };
       var newLinePoints = [];
@@ -321,10 +232,6 @@ export default {
       //   map.centerAndZoom(new BMap.Point(point.longitude, point.latitude), 18);
       // }
 
-      // var lng = parseFloat(point.longitude) + (Math.random()/100);
-      // var lat = parseFloat(point.latitude) + (Math.random()/100);
-      // var lng = point.longitude + Math.random() / 1000; //使用随机数据
-      // var lat = point.latitude + Math.random() / 1000;
       var lng = poi.longitude;
       var lat = poi.latitude;
       var id = Math.floor(Math.random() * 1000 + 1);
@@ -376,9 +283,6 @@ export default {
     //使用历史数据创建轨迹
     useHistoryData(pois) {
       console.log("point:", pois);
-      // var lat = poi.latitude;
-      // var id = Math.floor(Math.random() * 1000 + 1);
-
       var lng;
       var lat;
 
@@ -388,12 +292,6 @@ export default {
         arrPois.push(new BMap.Point(lng, lat)); //设备使用的实时数据
       });
       console.log("arrPois:", arrPois);
-      // var newLinePoints = [];
-      // var len;
-      // points.push(point);
-      // map.setViewport(points);
-      // bPoints.push(new BMap.Point(lng, lat));
-      // newLinePoints = points.slice(-2); //最后两个点用来画线。
       this.lushu.start(); //路书开始运动
     }
   }
