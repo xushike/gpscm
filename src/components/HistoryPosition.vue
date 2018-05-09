@@ -1,6 +1,6 @@
 <template>
 <div>
-<div style="width:100%;height:600px;border:#ccc solid 1px;" id="map"></div>
+<div id="history-position"></div>
 <button type="button" id="history-button" style="width:100px;height:30px" v-on:click="queryHistoryData">使用历史数据</button>
 <span>{{datumMarkState == 1?'基准点已记录':'等待记录基准点'}}</span>
 </div>
@@ -88,7 +88,7 @@ export default {
 
     //创建地图
     createMap() {
-      var map = new BMap.Map("map"); //在百度地图容器中创建一个地图
+      var map = new BMap.Map("history-position"); //在百度地图容器中创建一个地图
       var myIcon = new BMap.Icon(
         "http://lbsyun.baidu.com/jsdemo/img/Mario.png",
         new BMap.Size(32, 70),
@@ -118,7 +118,11 @@ export default {
     addMapControl() {
       //向地图中添加缩放控件
       var ctrl_nav = new BMap.NavigationControl({
-        anchor: BMAP_ANCHOR_TOP_LEFT,
+        anchor: BMAP_ANCHOR_BOTTOM_LEFT,
+                offset:{
+          width:15,
+          height:70
+        },
         type: BMAP_NAVIGATION_CONTROL_LARGE
       });
       map.addControl(ctrl_nav);
@@ -300,5 +304,7 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-
+#history-position {
+  width:100%;height:100%;border:#ccc solid 1px;
+}
 </style>

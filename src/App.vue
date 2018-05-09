@@ -39,12 +39,26 @@ export default {
 </script>
 
 <style>
+html,body,#app {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
 .btn,
 .div {
-  width: 100px;
+    position: absolute;
+    top: 20px;
+  left: 0;
+    z-index:10;
+  width: 80px;
+}
+.btn {
+  height: 30px;
 }
 #content {
   font-family: "Avenir", Helvetica, Arial, sans-serif;
+  height: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
@@ -54,10 +68,10 @@ export default {
 .cascader {
   position: absolute;
   height: 100%;
-  background-color: #eee;
+  background-color:#f7f8fa;
   top: 33px;
   left: 0;
-  z-index: 10;
+  z-index: 11;
 }
 
 .cascader-panel {

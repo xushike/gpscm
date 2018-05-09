@@ -1,10 +1,10 @@
 <template>
 <div>
-<div style="width:100%;height:600px;border:#ccc solid 1px;" id="allmap"></div>
-<button type="button" id="mock-button" style="width:100px;height:30px" v-on:click="useMockData">使用模拟数据</button>
-<button type="button" id="real-button" style="width:100px;height:30px" @click="connectWebSocket">使用真实数据</button>
-<button type="button" id="datum-mark-button" style="width:100px;height:30px" v-on:click="datumMarkStateChange">记录基准点</button>
-<span>{{datumMarkState == 1?'基准点已记录':'等待记录基准点'}}</span>
+<div id="real-position"></div>
+<button type="button" id="mock-button" v-on:click="useMockData">使用模拟数据</button>
+<button type="button" id="real-button" @click="connectWebSocket">使用真实数据</button>
+<button type="button" id="datum-mark-button" v-on:click="datumMarkStateChange">记录基准点</button>
+<span id="point-text">{{datumMarkState == 1?'基准点已录':'等待基准点'}}</span>
 </div>
 </template>
 
@@ -96,7 +96,7 @@ export default {
 
     //创建地图
     createMap() {
-      var map = new BMap.Map("allmap"); //在百度地图容器中创建一个地图
+      var map = new BMap.Map("real-position"); //在百度地图容器中创建一个地图
       var myIcon = new BMap.Icon(
         "http://lbsyun.baidu.com/jsdemo/img/Mario.png",
         new BMap.Size(32, 70),
@@ -126,7 +126,11 @@ export default {
     addMapControl() {
       //向地图中添加缩放控件
       var ctrl_nav = new BMap.NavigationControl({
-        anchor: BMAP_ANCHOR_TOP_LEFT,
+        anchor: BMAP_ANCHOR_BOTTOM_LEFT,
+        offset:{
+          width:15,
+          height:70
+        },
         type: BMAP_NAVIGATION_CONTROL_LARGE
       });
       map.addControl(ctrl_nav);
@@ -276,5 +280,35 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+#real-position {
+width:100%;
+height:100%;
+/* border:#ccc solid 1px; */
+}
+#mock-button{
+  position: absolute;
+  top:20px;
+  right: 100px;
+width:100px;
+height:30px
+}
+#real-button{
+  position: absolute;
+  top:20px;
+  right: 0;
+width:100px;height:30px
+}
 
+#datum-mark-button{
+  position: absolute;
+  top:50px;
+  right: 100px;
+width:100px;height:30px
+}
+#point-text {
+  position: absolute;
+  top:50px;
+  right: 0;
+width:100px;height:30px
+}
 </style>
