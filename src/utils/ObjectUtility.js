@@ -1,4 +1,4 @@
-import { TypeUtility } from "./type.util";
+import {TypeUtility} from "./TypeUtility";
 export class ObjectUtility {
     /**
      * 对象复制（可以转换key），支持驼峰和下划线的转换模式

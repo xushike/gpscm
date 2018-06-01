@@ -7,6 +7,7 @@
           <ul>
             <li @click="routerTo('/')">实时定位</li>
             <li @click="routerTo('/history')">路径回放</li>
+            <li @click="routerTo('/demo')">Demo(仅测试)</li>
           </ul>
         </div>
       </div>
@@ -42,7 +43,13 @@ export default {
 html,body,#app {
   height: 100%;
   width: 100%;
+  /* overflow: auto; */
+}
+html,body{
   overflow: hidden;
+}
+#app {
+  overflow:unset;
 }
 
 .btn,

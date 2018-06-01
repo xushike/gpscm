@@ -3,8 +3,14 @@
 import Vue from 'vue'
 import App from './App'
 import router from './router'
+import Api from '@/lib/api/Api'
+import '@/lib/api/mock'
+import ElementUI from 'element-ui'
 
 Vue.config.productionTip = false
+
+Vue.prototype.$api = new Api()
+Vue.use(ElementUI)
 
 /* eslint-disable no-new */
 new Vue({

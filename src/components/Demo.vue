@@ -1,20 +1,39 @@
 <template>
-<div>
-    
-</div>
+    <el-table :data="tableData" style="width: 100%">
+      <el-table-column prop="date" label="日期" width="180">
+      </el-table-column>
+      <el-table-column prop="name" label="姓名" width="180">
+      </el-table-column>
+      <el-table-column prop="address" label="地址">
+      </el-table-column>
+    </el-table>
 </template>
 <script>
-import {axios} from "axios";
 export default {
   data() {
-    return {};
+    return {
+      tableData: []
+    };
   },
-  created(){
-      //http://192.168.106.217:8000//card/info/query?page_size=10&page_index=1
-      axios.post()
+
+  created() {
+    this.$api.post(
+      "/news/index",
+      {},
+      res => {
+        this.tableData = res.data;
+        console.log("success:",res.data)
+      },
+      err => {
+        console.log("failure:",err);
+      }
+    );
   },
+
+  start() {}
 };
 </script>
+
 <style scoped>
 
 </style>
