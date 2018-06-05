@@ -165,7 +165,7 @@ export default {
 
       this.lushu = new BMapLib.LuShu(map, arrPois, {
         defaultContent: "设备",
-        autoView: false, //是否开启自动视野调整，如果开启那么路书在运动过程中会根据视野自动调整
+        autoView: true, //是否开启自动视野调整，如果开启那么路书在运动过程中会根据视野自动调整
         icon: new BMap.Icon(
           "http://lbsyun.baidu.com/jsdemo/img/car.png",
           new BMap.Size(52, 26),
@@ -207,6 +207,7 @@ export default {
     //使用模拟数据创建轨迹
     mockLine() {
       var poi = { longitude: 104.087744, latitude: 30.408908 };
+
       //如果是第一次，则设置为中心点
       // if (points.length < 2) {
       //   map.centerAndZoom(new BMap.Point(point.longitude, point.latitude), 18);
@@ -229,9 +230,7 @@ export default {
       points.push(point);
       map.setViewport(points);
       bPoints.push(new BMap.Point(lng, lat));
-      // if (arrPois.length < 10) {
       arrPois.push(new BMap.Point(lng, lat)); //设备使用的实时数据
-      // }
       this.lushu.start(); //路书开始运动
     },
 
@@ -239,7 +238,7 @@ export default {
       this.timer = setInterval(() => {
         //调用模拟数据
         this.mockLine();
-      }, 100);
+      }, 1000);
     },
 
     //使用真实数据创建轨迹
@@ -271,16 +270,8 @@ export default {
       map.setViewport(points);
       bPoints.push(new BMap.Point(lng, lat));
       // arrPois.push(new BMap.Point(lng, lat)); //设备使用的实时数据
-      ///alert test
-      // if (arrPois.length == 5) {
-      //   window.alert("测试是否卡住");
-      // }
 
-      ///
-      ///异步加入坐标
-      setTimeout(() => arrPois.push(new BMap.Point(lng, lat)), 0);
-      ///
-
+      arrPois.push(new BMap.Point(lng, lat));
       this.lushu.start(); //路书开始运动
     },
 

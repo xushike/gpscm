@@ -448,17 +448,17 @@ var BMapLib = window.BMapLib = BMapLib || {};
             //自定义画线
             me._map.addOverlay(
                 new BMap.Polyline(pointsArr, {
-                    strokeColor: "#111",
+                    strokeColor: "#5298FF",
                     strokeWeight: 5,
                     strokeOpacity: 0.5,
                     enableMassClear: false,
                 })
             );
             //如果小于1直接移动到下一点
-            if (count < 1) {
-                me._moveNext(++me.i);
-                return;
-            }
+            // if (count < 1) {
+            //     me._moveNext(++me.i);
+            //     return;
+            // }
             //两点之间匀速移动
             // me._intervalFlag = setInterval(function () {
             //     //两点之间当前帧数大于总帧数的时候，则说明已经完成移动
@@ -524,8 +524,8 @@ var BMapLib = window.BMapLib = BMapLib || {};
                     }
                 }
                 //运行下一个点
-                // me._path.slice(me.i, 1)
-                me._moveNext(++me.i);
+                me._path.splice(me.i, 1)
+                me._moveNext(me.i);
             }, 0);
         },
 
