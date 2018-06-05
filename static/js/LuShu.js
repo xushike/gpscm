@@ -263,9 +263,7 @@ var BMapLib = window.BMapLib = BMapLib || {};
         var me = this,
             len = me._path.length;
         console.log(
-            `me.i:${me.i}   me.len:${len}   me._fromPause:${
-            me._fromPause
-            } me._moving:${me._moving}`
+            `index:${me.i}   arrayLenth:${len}`
         );
         //不是第一次点击开始,并且小车还没到达终点
         if (me.i < len - 1 && me._marker) {
@@ -273,10 +271,14 @@ var BMapLib = window.BMapLib = BMapLib || {};
             me._moveNext(me.i);
         } else {
             //初始化marker
-            me._addMarker();
-            //等待marker动画完毕再加载infowindow(未实现)
-            me._addInfoWin();
-            me._moveNext(me.i);
+            // me._addMarker();
+            ///等待marker动画完毕再加载infowindow
+            var addMardered = Promise.resolve(me._addMarker());
+            addMardered.then(() => {
+                me._addInfoWin();
+                me._moveNext(me.i);
+            })
+
             // }, 400);
         }
         //重置状态
@@ -338,7 +340,7 @@ var BMapLib = window.BMapLib = BMapLib || {};
          * @param {Function} 回调函数.
          * @return 无返回值.
          */
-        _addMarker: function (callback) {
+        _addMarker: function () {
             if (this._marker) {
                 this.stop();
                 this._map.removeOverlay(this._marker);
@@ -351,7 +353,7 @@ var BMapLib = window.BMapLib = BMapLib || {};
             });
             this._opts.icon && marker.setIcon(this._opts.icon);
             this._map.addOverlay(marker);
-            marker.setAnimation(BMAP_ANIMATION_DROP);
+            // marker.setAnimation(BMAP_ANIMATION_DROP);
             this._marker = marker;
         },
         /**
@@ -532,6 +534,9 @@ var BMapLib = window.BMapLib = BMapLib || {};
          */
         _moveNext: function (index) {
             var me = this;
+            // console.log(
+            //     `now  in moveNext method:index:${me.i}   arrayLenth:${me._path.length}  me._moving:${me._moving}`
+            // );
             if (index < this._path.length - 1) {
                 me._moving = true;
                 me._move(me._path[index], me._path[index + 1], me._tween.linear);

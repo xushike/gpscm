@@ -13,6 +13,7 @@ export default {
   data() {
     return {
       lushu: null,
+      luShuView: null, //路书所用数组的DataView(暂未使用)
       datumMarkState: null, //基准点状态,初始值为null，未记录为0，已记录为1,
       timer: null, //定时器编号
       webSocket: null
@@ -25,7 +26,10 @@ export default {
     //清除定时器
     this.timer && clearInterval(this.timer);
     //断开websocket连接
-    if (this.webSocket.getReadyState() == 0 || this.webSocket.getReadyState() == 1) {
+    if (
+      this.webSocket.getReadyState() == 0 ||
+      this.webSocket.getReadyState() == 1
+    ) {
       this.webSocket.disconnect();
     }
   },
@@ -51,7 +55,10 @@ export default {
           var _this = this;
           mosq = new Mosquitto();
           mosq.onconnect = function(rc) {
+            console.log("连接状态:", rc);
             if (rc == 0) {
+              console.log;
+              ("ws连接成功");
               _this.subscribe();
             }
           };
@@ -59,13 +66,12 @@ export default {
             console.log("Lost connection");
           };
           mosq.onmessage = (topic, payload, qos) => {
-            //触发事件
             self.dynamicLine(payload);
           };
         }
         Page.prototype.connect = function() {
-          var mypage =this;
-          var url = "ws://192.168.6.231:8080/mqtt";
+          var mypage = this;
+          var url = "ws://222.209.84.37:8080/mqtt";
           mosq.connect(url);
         };
         Page.prototype.disconnect = function() {
@@ -127,9 +133,9 @@ export default {
       //向地图中添加缩放控件
       var ctrl_nav = new BMap.NavigationControl({
         anchor: BMAP_ANCHOR_BOTTOM_LEFT,
-        offset:{
-          width:15,
-          height:70
+        offset: {
+          width: 15,
+          height: 70
         },
         type: BMAP_NAVIGATION_CONTROL_LARGE
       });
@@ -147,14 +153,17 @@ export default {
 
     //创建路书
     createLushu() {
-      // var lushu;
+      //新建160字节的缓冲区
       var arrPois = [];
+      // var arrPois = new Float32Array(40);
+
       window.arrPois = arrPois;
+
       map.setViewport(arrPois);
 
       this.lushu = new BMapLib.LuShu(map, arrPois, {
         defaultContent: "设备",
-        autoView: true, //是否开启自动视野调整，如果开启那么路书在运动过程中会根据视野自动调整
+        autoView: false, //是否开启自动视野调整，如果开启那么路书在运动过程中会根据视野自动调整
         icon: new BMap.Icon(
           "http://lbsyun.baidu.com/jsdemo/img/car.png",
           new BMap.Size(52, 26),
@@ -205,7 +214,6 @@ export default {
       var lat = poi.latitude + Math.random() / 1000;
       var id = Math.floor(Math.random() * 1000 + 1);
       var point = { lng: lng, lat: lat, status: 1, id: id };
-      var newLinePoints = [];
       var len;
 
       //是否记录基准点
@@ -217,11 +225,12 @@ export default {
       }
 
       points.push(point);
-      map.setViewport(points);
+      // map.setViewport(points);
       bPoints.push(new BMap.Point(lng, lat));
+      // setTimeout(() => {
       arrPois.push(new BMap.Point(lng, lat)); //设备使用的实时数据
+      // }, 0);
 
-      newLinePoints = points.slice(-2); //最后两个点用来画线。
       this.lushu.start(); //路书开始运动
     },
 
@@ -229,7 +238,7 @@ export default {
       this.timer = setInterval(() => {
         //调用模拟数据
         this.mockLine();
-      }, 1000);
+      }, 300);
     },
 
     //使用真实数据创建轨迹
@@ -260,8 +269,17 @@ export default {
       points.push(point);
       map.setViewport(points);
       bPoints.push(new BMap.Point(lng, lat));
-      arrPois.push(new BMap.Point(lng, lat)); //设备使用的实时数据
-      newLinePoints = points.slice(-2); //最后两个点用来画线。
+      // arrPois.push(new BMap.Point(lng, lat)); //设备使用的实时数据
+      ///alert test
+      // if (arrPois.length == 5) {
+      //   window.alert("测试是否卡住");
+      // }
+
+      ///
+      ///异步加入坐标
+      setTimeout(() => arrPois.push(new BMap.Point(lng, lat)), 0);
+      ///
+
       this.lushu.start(); //路书开始运动
     },
 
@@ -281,34 +299,37 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 #real-position {
-width:100%;
-height:100%;
-/* border:#ccc solid 1px; */
+  width: 100%;
+  height: 100%;
+  /* border:#ccc solid 1px; */
 }
-#mock-button{
+#mock-button {
   position: absolute;
-  top:20px;
+  top: 20px;
   right: 100px;
-width:100px;
-height:30px
+  width: 100px;
+  height: 30px;
 }
-#real-button{
+#real-button {
   position: absolute;
-  top:20px;
+  top: 20px;
   right: 0;
-width:100px;height:30px
+  width: 100px;
+  height: 30px;
 }
 
-#datum-mark-button{
+#datum-mark-button {
   position: absolute;
-  top:50px;
+  top: 50px;
   right: 100px;
-width:100px;height:30px
+  width: 100px;
+  height: 30px;
 }
 #point-text {
   position: absolute;
-  top:50px;
+  top: 50px;
   right: 0;
-width:100px;height:30px
+  width: 100px;
+  height: 30px;
 }
 </style>

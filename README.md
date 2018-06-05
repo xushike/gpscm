@@ -25,3 +25,5 @@ For a detailed explanation on how things work, check out the [guide](http://vuej
 1. 数据存的数组,量大时会卡死
 2. 页面样式和适配
 3. websocket的关闭
+4. 动画卡住的问题
+5. 页面更新的问题:如果数据丢失或只传回来部分数据怎么办?

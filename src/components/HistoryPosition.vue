@@ -60,7 +60,7 @@ export default {
           };
         }
         Page.prototype.connect = function() {
-          var url = "ws://192.168.6.231:8080/mqtt";
+          var url = "ws://222.209.84.37:8080/mqtt";
           mosq.connect(url);
         };
         Page.prototype.disconnect = function() {
