@@ -13,15 +13,17 @@ export default {
   data() {
     return {
       lushu: null,
-      luShuView: null, //路书所用数组的DataView(暂未使用)
+      luShuView: null, //路书所用数组的DataView
       datumMarkState: null, //基准点状态,初始值为null，未记录为0，已记录为1,
       timer: null, //定时器编号
       webSocket: null
     };
   },
+
   mounted() {
     this.init();
   },
+
   beforeDestroy() {
     //清除定时器
     this.timer && clearInterval(this.timer);
@@ -154,8 +156,8 @@ export default {
     //创建路书
     createLushu() {
       //新建160字节的缓冲区
+      // this.luShuView = new Float64Array(40);
       var arrPois = [];
-      // var arrPois = new Float32Array(40);
 
       window.arrPois = arrPois;
 
@@ -225,12 +227,11 @@ export default {
       }
 
       points.push(point);
-      // map.setViewport(points);
+      map.setViewport(points);
       bPoints.push(new BMap.Point(lng, lat));
-      // setTimeout(() => {
+      // if (arrPois.length < 10) {
       arrPois.push(new BMap.Point(lng, lat)); //设备使用的实时数据
-      // }, 0);
-
+      // }
       this.lushu.start(); //路书开始运动
     },
 
@@ -238,7 +239,7 @@ export default {
       this.timer = setInterval(() => {
         //调用模拟数据
         this.mockLine();
-      }, 300);
+      }, 100);
     },
 
     //使用真实数据创建轨迹

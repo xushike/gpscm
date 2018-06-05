@@ -20,6 +20,8 @@ npm run build --report
 
 For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
 
+## 说明
+当前分支主要是为了移除路书的动画
 
 ## 待解决问题
 1. 数据存的数组,量大时会卡死

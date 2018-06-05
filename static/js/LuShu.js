@@ -269,17 +269,15 @@ var BMapLib = window.BMapLib = BMapLib || {};
         if (me.i < len - 1 && me._marker) {
             me._moving = true;
             me._moveNext(me.i);
-        } else {
+            //不是第一次开始,并且小车已经到达终点
+        } else if (len > 1 && me.i > len - 2) {
+            return;
+        }
+        else {
             //初始化marker
-            // me._addMarker();
-            ///等待marker动画完毕再加载infowindow
-            var addMardered = Promise.resolve(me._addMarker());
-            addMardered.then(() => {
-                me._addInfoWin();
-                me._moveNext(me.i);
-            })
-
-            // }, 400);
+            me._addMarker();
+            me._addInfoWin();
+            me._moveNext(me.i);
         }
         //重置状态
         this._fromPause = false;
@@ -349,13 +347,30 @@ var BMapLib = window.BMapLib = BMapLib || {};
             //移除之前的overlay
             this._overlay && this._map.removeOverlay(this._overlay);
             var marker = new BMap.Marker(this._path[0], {
-                enableMassClear: false,
+                enableMassClear: true,
             });
             this._opts.icon && marker.setIcon(this._opts.icon);
             this._map.addOverlay(marker);
             // marker.setAnimation(BMAP_ANIMATION_DROP);
             this._marker = marker;
         },
+
+        /**
+         * 刷新marker的位置
+         */
+        _refreshMarker: function (poi) {
+            if (this._marker) {
+                this._map.removeOverlay(this._marker);
+            }
+            var marker = new BMap.Marker(poi, {
+                enableMassClear: true,
+            });
+            this._opts.icon && marker.setIcon(this._opts.icon);
+            this._map.addOverlay(marker);
+            // marker.setAnimation(BMAP_ANIMATION_DROP);
+            this._marker = marker;
+        },
+
         /**
          * 添加上方overlay
          * @return 无返回值.
@@ -445,43 +460,75 @@ var BMapLib = window.BMapLib = BMapLib || {};
                 return;
             }
             //两点之间匀速移动
+            // me._intervalFlag = setInterval(function () {
+            //     //两点之间当前帧数大于总帧数的时候，则说明已经完成移动
+            //     if (currentCount >= count) {
+            //         clearInterval(me._intervalFlag);
+            //         //移动的点已经超过总的长度
+            //         if (me.i > me._path.length) {
+            //             return;
+            //         }
+            //         //运行下一个点
+            //         me._moveNext(++me.i);
+            //     } else {
+            //         currentCount++;
+            //         //动画效果
+            //         // var x = effect(init_pos.x, target_pos.x, currentCount, count),
+            //         //     y = effect(init_pos.y, target_pos.y, currentCount, count),
+            //         //     pos = me._projection.pointToLngLat(new BMap.Pixel(x, y));
+            //         //不使用动画效果
+            //         pos = new BMap.Point(target_pos.x, target_pos.y)
+
+            //         //设置marker
+            //         if (currentCount == 1) {
+            //             var proPos = null;
+            //             if (me.i - 1 >= 0) {
+            //                 proPos = me._path[me.i - 1];
+            //             }
+            //             if (me._opts.enableRotation == true) {
+            //                 me.setRotation(proPos, initPos, targetPos);
+            //             }
+            //             if (me._opts.autoView) {
+            //                 if (!me._map.getBounds().containsPoint(pos)) {
+            //                     me._map.setCenter(pos);
+            //                 }
+            //             }
+            //         }
+            //         //正在移动
+            //         me._marker.setPosition(pos);
+            //         //设置自定义overlay的位置
+            //         me._setInfoWin(pos);
+            //     }
+            // }, timer);
+
+            //两点之间直接移动
             me._intervalFlag = setInterval(function () {
-                //两点之间当前帧数大于总帧数的时候，则说明已经完成移动
-                if (currentCount >= count) {
+                if (me.i > me._path.length - 2) {
                     clearInterval(me._intervalFlag);
-                    //移动的点已经超过总的长度
-                    if (me.i > me._path.length) {
-                        return;
-                    }
-                    //运行下一个点
-                    me._moveNext(++me.i);
-                } else {
-                    currentCount++;
-                    var x = effect(init_pos.x, target_pos.x, currentCount, count),
-                        y = effect(init_pos.y, target_pos.y, currentCount, count),
-                        pos = me._projection.pointToLngLat(new BMap.Pixel(x, y));
-                    //设置marker
-                    if (currentCount == 1) {
-                        var proPos = null;
-                        if (me.i - 1 >= 0) {
-                            proPos = me._path[me.i - 1];
-                        }
-                        if (me._opts.enableRotation == true) {
-                            me.setRotation(proPos, initPos, targetPos);
-                        }
-                        if (me._opts.autoView) {
-                            if (!me._map.getBounds().containsPoint(pos)) {
-                                me._map.setCenter(pos);
-                            }
-                        }
-                    }
-                    //正在移动
-                    me._marker.setPosition(pos);
-                    //设置自定义overlay的位置
-                    me._setInfoWin(pos);
+                    return;
                 }
-            }, timer);
+                me._marker.setPosition(targetPos);
+                me._setInfoWin(targetPos);
+
+                var proPos = null;
+                if (me.i - 1 >= 0) {
+                    proPos = me._path[me.i - 1];
+                }
+                if (me._opts.enableRotation == true) {
+                    me.setRotation(proPos, initPos, targetPos);
+                }
+
+                if (me._opts.autoView) {
+                    if (!me._map.getBounds().containsPoint(targetPos)) {
+                        me._map.setCenter(targetPos);
+                    }
+                }
+                //运行下一个点
+                // me._path.slice(me.i, 1)
+                me._moveNext(++me.i);
+            }, 0);
         },
+
         /**
         *在每个点的真实步骤中设置小车转动的角度
         */
